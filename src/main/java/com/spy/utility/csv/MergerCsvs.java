@@ -11,7 +11,7 @@ import com.spy.utility.file.TraverseDir;
  * 
  * @author shipy
  */
-public class MergerCsvS {
+public class MergerCsvs {
 
 	public static void main(String[] args) {
 		// String path = "/Users/shipy/Desktop/A智能助手/智能助手20170908/邹晓栋/";
