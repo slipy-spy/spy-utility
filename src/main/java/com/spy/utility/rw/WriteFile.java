@@ -30,7 +30,7 @@ public class WriteFile {
 				file.createNewFile();
 			}
 			// get the content in bytes
-			byte[] contentInBytes = content.getBytes();
+			byte[] contentInBytes = content.getBytes("gbk");
 
 			fop.write(contentInBytes);
 			fop.flush();

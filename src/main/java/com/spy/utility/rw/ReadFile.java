@@ -21,10 +21,20 @@ public class ReadFile {
 	 * @param sb
 	 */
 	public static void read1(String filePath, StringBuffer sb) {
+		File file = new File(filePath);
+		read1(file, sb);
+	}
+
+	/**
+	 * 节点流FileInputStream读取字节流
+	 * 
+	 * @param filePath
+	 * @param sb
+	 */
+	public static void read1(File file, StringBuffer sb) {
 		// 一般先创建file对象
 		FileInputStream fileInput = null;
 		try {
-			File file = new File(filePath);
 			if (!file.exists()) {
 				file.createNewFile();
 			}
