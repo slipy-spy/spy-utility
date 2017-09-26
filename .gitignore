@@ -30,3 +30,5 @@ bin/
 
 # setting files for IntelliJ IDEA
 *.idea
+*.iml
+target/
