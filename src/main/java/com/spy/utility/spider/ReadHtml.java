@@ -10,6 +10,9 @@ import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * 读取网页
@@ -17,6 +20,7 @@ import java.io.IOException;
  */
 public class ReadHtml {
     private static Log log = LogFactory.getLog(ReadHtml.class);
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");
     //    private static String local_path = "G:\\AAA_Data\\www.meinvtupianku.com\\"; // 保存路径
     private static String local_path = "/Users/shipy/Desktop/spy/AAA_Data/www.meinvtupianku.com/"; // 保存路径
     private static String net_url = "http://www.meinvtupianku.com"; // 网址
@@ -32,6 +36,10 @@ public class ReadHtml {
      */
     public static void getUrl(String url) {
         try {
+            // 开始时间
+            Date beginDate = new Date();
+            log.info("开始爬---" + sdf.format(beginDate));
+
             Connection connect = Jsoup.connect(url);
             Document document = connect.get();
             // 分离出html下的<a>...</a>之间的所有东西
@@ -43,8 +51,10 @@ public class ReadHtml {
                 String titleUrl = img.attr("original"); // 标题图片
                 String titleName = img.attr("alt"); // 标题
                 getUrl(titleName, titleUrl, linkHref);
-                return;
+//                return;
             }
+            Date endDate = new Date();
+            log.info("爬完了---" + sdf.format(endDate));
         } catch (IOException e) {
             e.printStackTrace();
         }
