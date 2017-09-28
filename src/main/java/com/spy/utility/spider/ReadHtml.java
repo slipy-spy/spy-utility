@@ -11,7 +11,6 @@ import org.jsoup.select.Elements;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -19,11 +18,11 @@ import java.util.Date;
  * create by shipy on 2017/9/28 0:54
  */
 public class ReadHtml {
-    private static Log log = LogFactory.getLog(ReadHtml.class);
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");
-    //    private static String local_path = "G:\\AAA_Data\\www.meinvtupianku.com\\"; // 保存路径
-    private static String local_path = "/Users/shipy/Desktop/spy/AAA_Data/www.meinvtupianku.com/"; // 保存路径
-    private static String net_url = "http://www.meinvtupianku.com"; // 网址
+    private static final Log              log        = LogFactory.getLog(ReadHtml.class);
+    public static final  SimpleDateFormat sdf        = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");
+    public static        String           local_path = "G:\\AAA_Data\\www.meinvtupianku.com\\"; // 保存路径
+    //    private static String local_path = "/Users/shipy/Desktop/spy/AAA_Data/www.meinvtupianku.com/"; // 保存路径
+    public static        String           net_url    = "http://www.meinvtupianku.com"; // 网址
 
     public static void main(String[] args) {
         getUrl(net_url);
@@ -51,7 +50,7 @@ public class ReadHtml {
                 String titleUrl = img.attr("original"); // 标题图片
                 String titleName = img.attr("alt"); // 标题
                 getUrl(titleName, titleUrl, linkHref);
-//                return;
+                //                return;
             }
             Date endDate = new Date();
             log.info("爬完了---" + sdf.format(endDate));
@@ -122,4 +121,5 @@ public class ReadHtml {
         }
         return null;
     }
+
 }
