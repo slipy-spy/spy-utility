@@ -17,7 +17,8 @@ import java.io.IOException;
  */
 public class ReadHtml {
     private static Log log = LogFactory.getLog(ReadHtml.class);
-    private static String local_path = "G:\\AAA_Data\\www.meinvtupianku.com\\"; // 保存路径
+    //    private static String local_path = "G:\\AAA_Data\\www.meinvtupianku.com\\"; // 保存路径
+    private static String local_path = "/Users/shipy/Desktop/spy/AAA_Data/www.meinvtupianku.com/"; // 保存路径
     private static String net_url = "http://www.meinvtupianku.com"; // 网址
 
     public static void main(String[] args) {
@@ -39,7 +40,7 @@ public class ReadHtml {
                 // 得到<a>...</a>里面的网址
                 String linkHref = link.attr("href");
                 Elements img = link.select("img");
-                String titleUrl = img.attr("src"); // 标题图片
+                String titleUrl = img.attr("original"); // 标题图片
                 String titleName = img.attr("alt"); // 标题
                 getUrl(titleName, titleUrl, linkHref);
                 return;
@@ -63,21 +64,10 @@ public class ReadHtml {
             if (!folder.exists()) {
                 folder.mkdirs();
             }
-            log.info(net_url + imgUrl);
-            log.info(local_path + name + File.separator);
-            SavePicture.save(net_url + imgUrl, local_path + name + File.separator);
+            SavePicture.save(net_url, imgUrl, local_path + name + File.separator);
             // 开始解析点击进入的网页
             try {
-                Connection connect = Jsoup.connect(url);
-                Document doc = connect.get();
-                // 获取当前图片元素
-                Elements main_body = doc.select("div.main-body");
-                for (Element element : main_body) {
-                    Elements imgs = element.select("img");
-                    for (Element img : imgs) {
-                        log.info(img);
-                    }
-                }
+                Document doc = getUrl(name, url);
                 // 获取页码栏元素，遍历
                 Elements linkPageses = doc.select("div.link_pages");
                 for (Element linkPages : linkPageses) {
@@ -85,7 +75,7 @@ public class ReadHtml {
                     Elements as = linkPages.select("a");
                     for (Element a : as) {
                         String aHref = a.attr("href");
-//                        log.info(aHref);
+                        getUrl(name, aHref);
                     }
                 }
             } catch (Exception e) {
@@ -94,6 +84,7 @@ public class ReadHtml {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        log.info("遍历" + name + "结束");
     }
 
     /**
@@ -102,7 +93,23 @@ public class ReadHtml {
      * @param name 文件夹名
      * @param url  页码的url
      */
-    public static void getUrl(String name, String url) {
-
+    public static Document getUrl(String name, String url) {
+        try {
+            Connection connect = Jsoup.connect(url);
+            Document doc = connect.get();
+            // 获取当前图片元素
+            Elements main_body = doc.select("div.main-body");
+            for (Element element : main_body) {
+                Elements imgs = element.select("img");
+                for (Element img : imgs) {
+                    String src = img.attr("src");
+                    SavePicture.save(net_url, src, local_path + name + File.separator);
+                }
+            }
+            return doc;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

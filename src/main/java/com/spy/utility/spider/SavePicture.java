@@ -18,7 +18,10 @@ import java.net.URL;
 public class SavePicture {
     private static Log log = LogFactory.getLog(SavePicture.class);
 
-    public static void save(String imgUrl, String path) throws Exception {
+    public static void save(String htt, String imgUrl, String path) throws Exception {
+        if (!imgUrl.startsWith("http")) {
+            imgUrl = htt + imgUrl;
+        }
         //new一个URL对象
         URL url = new URL(imgUrl);
         //打开链接
