@@ -1,5 +1,6 @@
-package com.spy.utility.spider;
+package com.spy.utility.spider.meinvtupianku;
 
+import com.spy.utility.spider.SavePicture;
 import com.spy.utility.spider.bean.ImgBean;
 import com.spy.utility.spider.cache.SpiderCache;
 

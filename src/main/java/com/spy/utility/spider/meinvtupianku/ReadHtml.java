@@ -1,4 +1,6 @@
-package com.spy.utility.spider;
+package com.spy.utility.spider.meinvtupianku;
+
+import com.spy.utility.spider.SavePicture;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
