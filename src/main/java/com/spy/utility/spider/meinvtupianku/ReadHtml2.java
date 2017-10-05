@@ -1,6 +1,5 @@
 package com.spy.utility.spider.meinvtupianku;
 
-import com.spy.utility.spider.SavePicture;
 import com.spy.utility.spider.bean.ImgBean;
 import com.spy.utility.spider.cache.SpiderCache;
 
@@ -13,7 +12,8 @@ import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 
 import static org.apache.commons.logging.LogFactory.getLog;
 
@@ -23,86 +23,17 @@ import static org.apache.commons.logging.LogFactory.getLog;
  */
 
 public class ReadHtml2 {
-    private static final Log log = getLog(ReadHtml2.class);
+    private static final Log log           = getLog(ReadHtml2.class);
+    public static        int num_zhuwangye = 0; // 主网页个数
+    public static        int num_biaotiye  = 0; // 标题页个数
+    public static        int num_imgobj    = 0; // 缓存的图片对象的个数
 
     public static void main(String[] args) {
-        Date begindate = new Date();
-        log.info("===========开始爬虫 " + ReadHtml.sdf.format(begindate) + "=============");
-        Thread t1 = new Thread(new Runnable() {
-            public void run() {
-                log.info("开始解析，获取主网页对象并缓存");
-                getMainDocument(ReadHtml.net_url);
-            }
-        });
-        t1.start();
-
-        Thread t2 = new Thread(new Runnable() {
-            public void run() {
-                while (SpiderCache.getMainDocListSize() < 1) {
-                    log.info("主网页个数小于1，先睡1s");
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                log.info("开始解析主网页，获取标题对象，主网页个数：" + SpiderCache.getMainDocListSize());
-                while (SpiderCache.getMainDocListSize() > 0) {
-                    Document document = SpiderCache.removeFirstMainDoc();
-                    getTitileDocument(document);
-                }
-            }
-        });
-        t2.start();
-
-        Thread t3 = new Thread(new Runnable() {
-            public void run() {
-                while (SpiderCache.getTitleBeancListSize() < 1) {
-                    log.info("标题对象个数小于1，先睡1s");
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                log.info("开始解析标题对象，获取图片对象，标题对象个数：" + SpiderCache.getTitleBeancListSize());
-                while (SpiderCache.getTitleBeancListSize() > 0) {
-                    ImgBean titleBean = SpiderCache.removeFirstTitleBean();
-                    getImgBeanFromTitle(titleBean);
-                }
-            }
-        });
-        t3.start();
-
-        Thread t4 = new Thread(new Runnable() {
-            public void run() {
-                while (SpiderCache.getImgBeanListSize() < 1) {
-                    log.info("图片对象个数小于1，先睡1s");
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                log.info("开始解析图片对象，保存图片，图片对象个数：" + SpiderCache.getImgBeanListSize());
-                while (SpiderCache.getImgBeanListSize() > 0) {
-                    ImgBean imgBean = SpiderCache.removeFirstImgBean();
-                    if (imgBean == null) {
-                        continue;
-                    }
-                    String domain = imgBean.getDomain();
-                    String url = imgBean.getUrl();
-                    String path = imgBean.getPath();
-                    try {
-                        log.info("保存图片： " + url);
-                        SavePicture.save(domain, url, path);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
-        t4.start();
+        ImgBean imgBean = new ImgBean(
+                "",
+                "http://www.meinvtupianku.com/xgmote/20171004/18209.html",
+                "");
+        getImgBeanFromTitle(imgBean);
     }
 
     /**
@@ -115,11 +46,18 @@ public class ReadHtml2 {
             return;
         }
         try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        try {
             Connection connect = Jsoup.connect(url);
             Document document = null;
             document = connect.get();
 
-            log.info("将分页网页的Document对象存入缓存： " + url);
+            num_zhuwangye++;
+
+            log.info("将分页网页的Document对象存入缓存： " + url + "   num_zhuwangye:" + num_zhuwangye);
             SpiderCache.setMainDocList(document); // 存入缓存
 
             Elements pageClicks = document.select("div#pagenavi > *");
@@ -152,6 +90,11 @@ public class ReadHtml2 {
         if (document == null) {
             return;
         }
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         // 分离出html下的<a>...</a>之间的所有东西
         Elements links = document.select("div.pin-coat > a.imageLink");
         for (Element link : links) {
@@ -160,7 +103,10 @@ public class ReadHtml2 {
             Elements img = link.select("img");
             String titleUrl = img.attr("original"); // 标题图片
             String titleName = img.attr("alt"); // 标题
-            log.info("将  " + titleName + "  放入标题网址缓存");
+
+            num_biaotiye++;
+
+            log.info("将  " + titleName + "  放入标题网址缓存" + "    num_biaotiye:" + num_biaotiye);
 
             // 以标题为名创建文件夹
             File folder = new File(ReadHtml.local_path + titleName); // 文件夹
@@ -191,16 +137,21 @@ public class ReadHtml2 {
         }
         try {
             Document doc = getUrl(titleBean);
-            // 获取页码栏元素，遍历
-            Elements linkPageses = doc.select("div.link_pages");
-            for (Element linkPages : linkPageses) {
-                // 获取<a>...</a>
-                Elements as = linkPages.select("a");
-                for (Element a : as) {
-                    String aHref = a.attr("href");
-                    getUrl(titleBean);
-                }
+            if (doc == null) {
+                return;
             }
+            // 获取页码栏<div>的第一个直接子元素<span>，即当前页码
+            Element cur_span = doc.select("div.link_pages > span").first();
+            // 获取下一页的<a>
+            Element next_page_a = cur_span.nextElementSibling();
+            if (next_page_a == null) {
+                return;
+            }
+            String aHref = next_page_a.attr("href");
+            //                    getUrl(titleBean);
+            ImgBean iib2 = new ImgBean(titleBean.getDomain(), aHref, titleBean.getPath());
+            getImgBeanFromTitle(iib2);
+            return;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -215,24 +166,53 @@ public class ReadHtml2 {
         if (titleBean == null) {
             return null;
         }
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         String url = titleBean.getUrl();
         String path = titleBean.getPath(); // 图片保存的目录
+        Connection connect = null;
         try {
-            Connection connect = Jsoup.connect(url);
-            Document doc = connect.get();
-            // 获取当前图片元素
-            Elements main_body = doc.select("div.main-body");
-            for (Element element : main_body) {
-                Elements imgs = element.select("img");
-                for (Element img : imgs) {
-                    String src = img.attr("src");
-                    // 将图片对象放入待下载图片集合缓存
-                    ImgBean imgBean = new ImgBean(ReadHtml.net_url, src, path);
-                    SpiderCache.setImgBeanList(imgBean);
-                }
+            connect = Jsoup.connect(url);
+        } catch (Exception e) {
+            log.error(url);
+            e.printStackTrace();
+            return null;
+        }
+        Document doc = null;
+        while (doc == null) {
+            try {
+                doc = connect.get();
+            } catch (SocketTimeoutException e1) {
+                doc = null;
+                e1.printStackTrace();
+            } catch (ConnectException e2) {
+                doc = null;
+                e2.printStackTrace();
+            } catch (IOException e3) {
+                e3.printStackTrace();
+                return null;
             }
+        }
+        try {
+            // 获取当前图片元素
+            Element main_body = doc.select("div.main-body").first();
+            Element img = main_body.select("img").first();
+            String src = img.attr("src");
+
+            num_imgobj++;
+            log.info("当前线程：" + Thread.currentThread().getName()
+                    + "   缓存的图片对象个数num_imgobj：" + num_imgobj
+                    + "   " + src);
+
+            // 将图片对象放入待下载图片集合缓存
+            ImgBean imgBean = new ImgBean(ReadHtml.net_url, src, path);
+            SpiderCache.setImgBeanList(imgBean);
             return doc;
         } catch (Exception e) {
+            log.error(url);
             e.printStackTrace();
         }
         return null;
