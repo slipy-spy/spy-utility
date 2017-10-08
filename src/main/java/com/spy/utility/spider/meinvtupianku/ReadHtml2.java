@@ -46,7 +46,7 @@ public class ReadHtml2 {
             return;
         }
         try {
-            Thread.sleep(50);
+            Thread.sleep(1);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -77,6 +77,7 @@ public class ReadHtml2 {
                 getMainDocument(nextUrl);
             }
         } catch (IOException e) {
+            log.error("url:" + url);
             e.printStackTrace();
         }
     }
@@ -112,6 +113,9 @@ public class ReadHtml2 {
             File folder = new File(ReadHtml.local_path + titleName); // 文件夹
             if (!folder.exists()) {
                 folder.mkdirs();
+            } else {
+                // 已存在，则跳过，不再解析此标签内的图片
+                return;
             }
 
             String path = ReadHtml.local_path + titleName + File.separator; // 文件夹路径

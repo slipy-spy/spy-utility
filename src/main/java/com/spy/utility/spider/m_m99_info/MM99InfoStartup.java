@@ -1,8 +1,9 @@
-package com.spy.utility.spider.meinvtupianku;
+package com.spy.utility.spider.m_m99_info;
 
 import com.spy.utility.spider.SavePicture;
 import com.spy.utility.spider.bean.ImgBean;
 import com.spy.utility.spider.cache.SpiderCache;
+import com.spy.utility.spider.meinvtupianku.ReadHtml;
 
 import org.apache.commons.logging.Log;
 import org.jsoup.nodes.Document;
@@ -12,12 +13,11 @@ import java.util.Date;
 import static org.apache.commons.logging.LogFactory.getLog;
 
 /**
- * 启动类
- * Created by shipy on 2017/10/5..
+ * Created by shipy on 2017/10/8..
  */
 
-public class Startup {
-    private static final Log log = getLog(Startup.class);
+class MM99InfoStartup {
+    private static final Log log = getLog(MM99InfoStartup.class);
 
     public static void main(String[] args) {
         Date begindate = new Date();
@@ -25,13 +25,13 @@ public class Startup {
         Thread t1 = new Thread(new Runnable() {
             public void run() {
                 log.info("开始解析，获取主网页对象并缓存");
-                ReadHtml2.getMainDocument(ReadHtml.net_url);
+                MM99InfoHandler.step1ReadNextPage(MM99InfoHandler.NET_URL);
             }
         });
         t1.start();
 
         try {
-            Thread.sleep(60 * 1000);
+            Thread.sleep(10 * 1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -45,7 +45,7 @@ public class Startup {
                     if (SpiderCache.getMainDocListSize() > 0) {
                         num = 0; // 重置标志
                         Document document = SpiderCache.removeFirstMainDoc();
-                        ReadHtml2.getTitileDocument(document);
+                        MM99InfoHandler.step2ReadTitlePic(document);
                     } else {
                         if (num >= 5) {
                             stop = true;
@@ -65,7 +65,7 @@ public class Startup {
         t2.start();
 
         try {
-            Thread.sleep(30 * 1000);
+            Thread.sleep(20 * 1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -79,7 +79,7 @@ public class Startup {
                     if (SpiderCache.getTitleBeancListSize() > 0) {
                         num = 0; // 重置标志
                         ImgBean titleBean = SpiderCache.removeFirstTitleBean();
-                        ReadHtml2.getImgBeanFromTitle(titleBean);
+                        MM99InfoHandler.step3ReadEachTitlePage(titleBean);
                     } else {
                         if (num >= 5) {
                             stop = true;
@@ -125,6 +125,8 @@ public class Startup {
                         try {
                             log.info("保存图片： " + url);
                             SavePicture.save(domain, url, path);
+
+                            Thread.sleep(3 * 1000); // 防止频繁访问网站
                         } catch (Exception e) {
                             log.error("保存图片失败：" + url);
                             e.printStackTrace();
@@ -147,9 +149,5 @@ public class Startup {
         };
         Thread t4_1 = new Thread(r4);
         t4_1.start();
-        Thread t4_2 = new Thread(r4);
-        t4_2.start();
-        Thread t4_3 = new Thread(r4);
-        t4_3.start();
     }
 }
